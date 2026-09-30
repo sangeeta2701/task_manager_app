@@ -153,7 +153,7 @@ When a task status is updated:
 ### Installation
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/sangeeta2701/task_manager_app
 cd task_manager_app
 flutter pub get
 flutter run
