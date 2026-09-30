@@ -61,30 +61,31 @@ class TaskProvider extends ChangeNotifier {
     _applyFiltersAndSort();
   }
 
-  // NEW: Method to add a task manually
+  // Method to add a task manually
   void addTask(Task task) {
     _allTasks.insert(0, task); // Add to top of list
     _applyFiltersAndSort();
   }
 
-  // NEW: Method to delete a task
-  void deleteTask(int taskId) {
-    _allTasks.removeWhere((t) => t.id == taskId);
-    _applyFiltersAndSort();
-  }
+  // Method to delete a task
+ void deleteTask(int taskId) {
+  _allTasks.removeWhere((t) => t.id == taskId);
+  _applyFiltersAndSort(); // Refresh the filtered list
+}
+
 
   void _applyFiltersAndSort() {
-    // 1. Filter by Search
+    // Filter by Search
     List<Task> temp = _allTasks.where((task) => 
       task.title.toLowerCase().contains(_searchQuery.toLowerCase())
     ).toList();
 
-    // 2. Filter by Status
+    // Filter by Status
     if (_filterStatus != 'All') {
       temp = temp.where((task) => task.status == _filterStatus).toList();
     }
 
-    // 3. Sort Logic (Fixed)
+    // Sort Logic 
     if (temp.isNotEmpty) {
       switch (_sortOption) {
         case SortOption.priority:
