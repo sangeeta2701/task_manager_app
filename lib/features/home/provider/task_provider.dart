@@ -30,21 +30,39 @@ class TaskProvider extends ChangeNotifier {
   int get pendingTasks => _allTasks.where((t) => t.status == 'Not Started').length;
   int get inProgressTasks => _allTasks.where((t) => t.status == 'In Progress').length;
 
-  Future<void> loadTasks() async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
+  // Future<void> loadTasks() async {
+  //   _isLoading = true;
+  //   _errorMessage = '';
+  //   notifyListeners();
 
-    try {
-      _allTasks = await _apiService.fetchTasks();
-      _applyFiltersAndSort();
-    } catch (e) {
-      _errorMessage = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+  //   try {
+  //     _allTasks = await _apiService.fetchTasks();
+  //     _applyFiltersAndSort();
+  //   } catch (e) {
+  //     _errorMessage = e.toString();
+  //   } finally {
+  //     _isLoading = false;
+  //     notifyListeners();
+  //   }
+  // } 
+
+  Future<void> loadTasks() async {
+  _isLoading = true;
+  _errorMessage = '';
+  notifyListeners();
+
+  try {
+    _allTasks = await _apiService.fetchTasks();
+    _applyFiltersAndSort();
+  } on ApiException catch (e) {
+    _errorMessage = e.message; 
+  } catch (e) {
+    _errorMessage = 'Something went wrong. Please try again.';
+  } finally {
+    _isLoading = false;
+    notifyListeners();
   }
+}
 
   void searchTasks(String query) {
     _searchQuery = query;

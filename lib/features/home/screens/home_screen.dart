@@ -7,7 +7,7 @@ import 'package:task_manager_app/features/home/widgets/build_status_grid.dart';
 import 'package:task_manager_app/features/home/widgets/build_todays_focus.dart';
 import 'package:task_manager_app/features/home/widgets/search_bar.dart';
 import 'package:task_manager_app/features/home/widgets/show_filter_bottom_sheet.dart';
-import 'package:task_manager_app/features/home/widgets/show_short_bottom_sheet.dart';
+import 'package:task_manager_app/features/home/widgets/show_sort_bottom_sheet.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/responsive.dart';
 import '../widgets/task_card.dart';
@@ -91,7 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    horizontalPadding, 20, horizontalPadding, 10),
+                    horizontalPadding,
+                    20,
+                    horizontalPadding,
+                    10,
+                  ),
                   child: buildHeader(provider),
                 ),
               ),
@@ -100,8 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding, vertical: 10),
-                  child: buildSearchBar(provider),
+                    horizontal: horizontalPadding,
+                    vertical: 10,
+                  ),
+                  child: const SearchBarWidget(), 
                 ),
               ),
 
@@ -109,7 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding, vertical: 10),
+                    horizontal: horizontalPadding,
+                    vertical: 10,
+                  ),
                   child: buildTodaysFocus(),
                 ),
               ),
@@ -117,25 +125,32 @@ class _HomeScreenState extends State<HomeScreen> {
               // ---------- STATS ROW----------
               SliverPadding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: horizontalPadding, vertical: 10),
-                sliver: SliverToBoxAdapter(
-                  child: buildStatsGrid(provider),
+                  horizontal: horizontalPadding,
+                  vertical: 10,
                 ),
+                sliver: SliverToBoxAdapter(child: buildStatsGrid(provider)),
               ),
 
               // ---------- RECENT TASKS HEADER ----------
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    horizontalPadding, 20, horizontalPadding, 10),
+                    horizontalPadding,
+                    20,
+                    horizontalPadding,
+                    10,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Recent Tasks", style: AppTextStyles.subHeading),
                       TextButton.icon(
                         onPressed: () => showSortBottomSheet(context, provider),
-                        icon: const Icon(Icons.sort,
-                            size: 16, color: AppColors.primary),
+                        icon: const Icon(
+                          Icons.sort,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                         label: Text(
                           provider.sortOption.name.toUpperCase(),
                           style: AppTextStyles.caption.copyWith(
@@ -150,13 +165,75 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // ---------- TASK LIST ----------
-              if (provider.isLoading)
+
+              // ERROR STATE
+              if (provider.errorMessage.isNotEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.pending.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.wifi_off_rounded,
+                            size: 48,
+                            color: AppColors.pending,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Oops! Something went wrong",
+                          style: AppTextStyles.subHeading,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          provider.errorMessage,
+                          style: AppTextStyles.caption,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () => provider.loadTasks(),
+                          icon: const Icon(Icons.refresh, color: Colors.white),
+                          label: const Text(
+                            "Retry",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              // LOADING STATE
+              else if (provider.isLoading)
                 const SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 )
+              // EMPTY STATE
               else if (provider.tasks.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
@@ -164,10 +241,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text("No tasks found", style: AppTextStyles.body),
                   ),
                 )
+              // SUCCESS STATE — Show Task list
               else
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
-                    horizontalPadding, 0, horizontalPadding, 100),
+                    horizontalPadding,
+                    0,
+                    horizontalPadding,
+                    100,
+                  ),
                   sliver: SliverList.builder(
                     itemCount: provider.tasks.length,
                     itemBuilder: (context, index) {
@@ -192,5 +274,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
 }

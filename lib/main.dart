@@ -3,16 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:task_manager_app/core/constants/app.colors.dart';
 import 'package:task_manager_app/features/home/provider/task_provider.dart';
 import 'package:task_manager_app/features/splash/screen/splash_screen.dart';
-
+import 'core/utils/route_observer.dart';
 
 void main() {
-  runApp(
-    // 1. Provide the TaskProvider at the very top level
-    ChangeNotifierProvider(
-      create: (_) => TaskProvider(),
-      child: const MyApp(),
-    ),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -20,15 +15,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Task Manager',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => TaskProvider(),
+      child: MaterialApp(
+        title: 'Task Manager',
+        debugShowCheckedModeBanner: false,
+        navigatorObservers: [routeObserver],
+        theme: ThemeData(
+          primaryColor: AppColors.primary,
+          scaffoldBackgroundColor: AppColors.background,
+          useMaterial3: true,
+        ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }

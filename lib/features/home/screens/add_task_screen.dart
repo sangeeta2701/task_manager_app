@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager_app/core/constants/app.colors.dart';
 import 'package:task_manager_app/features/home/provider/task_provider.dart';
+import 'package:task_manager_app/features/home/widgets/build_dropdown.dart';
+import 'package:task_manager_app/features/home/widgets/build_text_field.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../data/models/task_model.dart';
 
@@ -52,29 +54,54 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
   }
 
-  void _submitTask() {
-    if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a title"), backgroundColor: AppColors.discussion),
-      );
-      return;
-    }
-
-    final newTask = Task(
-      id: DateTime.now().millisecondsSinceEpoch, // Unique ID
-      title: _titleController.text,
-      description: _descController.text.isEmpty ? "No description provided." : _descController.text,
-      priority: _priority,
-      status: _status,
-      assignedTo: _assignedTo,
-      assignedBy: _assignedBy,
-      dueDate: _dueDate,
-      category: _category,
+ void _submitTask() {
+  if (_titleController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Please enter a title"),
+        backgroundColor: AppColors.discussion,
+      ),
     );
-
-    Provider.of<TaskProvider>(context, listen: false).addTask(newTask);
-    Navigator.pop(context);
+    return;
   }
+
+  final newTask = Task(
+    id: DateTime.now().millisecondsSinceEpoch,
+    title: _titleController.text,
+    description: _descController.text.isEmpty
+        ? "No description provided."
+        : _descController.text,
+    priority: _priority,
+    status: _status,
+    assignedTo: _assignedTo,
+    assignedBy: _assignedBy,
+    dueDate: _dueDate,
+    category: _category,
+  );
+
+ 
+  Provider.of<TaskProvider>(context, listen: false).addTask(newTask);
+
+  //  Dismiss the keyboard
+  FocusManager.instance.primaryFocus?.unfocus();
+
+  final messenger = ScaffoldMessenger.of(context);
+
+  Navigator.pop(context);
+
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text("\"${newTask.title}\" created successfully"),
+      backgroundColor: AppColors.primary,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -91,17 +118,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTextField("Task Title", "e.g., Review Dashboard Wireframes", _titleController),
+            buildTextField("Task Title", "e.g., Review Dashboard Wireframes", _titleController),
             const SizedBox(height: 20),
-            _buildTextField("Description", "Enter detailed description...", _descController, maxLines: 4),
+            buildTextField("Description", "Enter detailed description...", _descController, maxLines: 4),
             const SizedBox(height: 20),
             
             // Priority & Category
             Row(
               children: [
-                Expanded(child: _buildDropdown("Priority", ["High", "Medium", "Low"], _priority, (val) => setState(() => _priority = val!))),
+                Expanded(child: buildDropdown("Priority", ["High", "Medium", "Low"], _priority, (val) => setState(() => _priority = val!))),
                 const SizedBox(width: 16),
-                Expanded(child: _buildDropdown("Category", ["Development", "Design", "Testing", "Marketing"], _category, (val) => setState(() => _category = val!))),
+                Expanded(child: buildDropdown("Category", ["Development", "Design", "Testing", "Marketing"], _category, (val) => setState(() => _category = val!))),
               ],
             ),
             const SizedBox(height: 20),
@@ -109,7 +136,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             // Status & Due Date
             Row(
               children: [
-                Expanded(child: _buildDropdown("Status", ['Not Started', 'In Progress', 'Completed', 'Discussion Required'], _status, (val) => setState(() => _status = val!))),
+                Expanded(child: buildDropdown("Status", ['Not Started', 'In Progress', 'Completed', 'Discussion Required'], _status, (val) => setState(() => _status = val!))),
                 const SizedBox(width: 16),
                 Expanded(child: _buildDatePicker(context)),
               ],
@@ -119,9 +146,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             // Assigned To & By
             Row(
               children: [
-                Expanded(child: _buildDropdown("Assigned To", ["You", "Manager", "QA Team", "Developer"], _assignedTo, (val) => setState(() => _assignedTo = val!))),
+                Expanded(child: buildDropdown("Assigned To", ["You", "Manager", "QA Team", "Developer"], _assignedTo, (val) => setState(() => _assignedTo = val!))),
                 const SizedBox(width: 16),
-                Expanded(child: _buildDropdown("Assigned By", ["Manager", "Client", "Self"], _assignedBy, (val) => setState(() => _assignedBy = val!))),
+                Expanded(child: buildDropdown("Assigned By", ["Manager", "Client", "Self"], _assignedBy, (val) => setState(() => _assignedBy = val!))),
               ],
             ),
 
@@ -146,48 +173,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController controller, {int maxLines = 1}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.all(16),
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildDropdown(String label, List<String> items, String currentValue, Function(String?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: currentValue,
-              isExpanded: true,
-              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: AppTextStyles.body))).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildDatePicker(BuildContext context) {
     return Column(
